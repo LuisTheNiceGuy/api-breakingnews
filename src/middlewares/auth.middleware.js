@@ -9,7 +9,7 @@ export const authMiddlware = (req, res, next) => {
         const {authorization} = req.headers;
 
         if(!authorization){
-            return res.send(401);
+            return res.sendStatus(401);
         };
 
         const parts = authorization.split(" ");
