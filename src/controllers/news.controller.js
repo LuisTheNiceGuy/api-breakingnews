@@ -7,7 +7,9 @@ import {
   searchByTitleService,
   byUserService,
   updateService,
-  eraseService
+  eraseService,
+  likeNewsServices,
+  deleteLikeNewsServices,
 } from "../services/news.service.js";
 
 export const create = async (req, res) =>{
@@ -44,15 +46,15 @@ export const findAll = async (req, res) =>{
 
       if(!limit){
         limit = 5;
-      };
+      }
 
       if(!offset){
         offset = 0;
-      };
+      }
 
       const news = await findAllService(offset, limit);
       const total = await countNews();
-      const currentURL = req.baseUrl
+      const currentURL = req.baseUrl;
 
       const next = offset + limit;
       const nextURL = next < total ? `${currentURL}?limit=${limit}&offset=${next}` : null;
@@ -124,6 +126,7 @@ export const findById = async (req, res) => {
   try{
     const { id } = req.params;
     const news = await findByIdService(id);
+
     return res.send({
       news: {
         id: news._id,
@@ -146,7 +149,6 @@ export const findById = async (req, res) => {
 export const searchByTitle = async (req, res) =>{
   try{
     const { title } = req.query;
-    
     const news = await searchByTitleService(title);
 
     if(news.length === 0){
@@ -168,8 +170,8 @@ export const searchByTitle = async (req, res) =>{
         name: item.user.name,
         username: item.user.username,
         userAvatar: item.user.avatar,
-      }))
-    })
+      })),
+    });
   }
   catch (err) {
     res.status(500).send({message: err.message});
@@ -213,7 +215,7 @@ export const update = async (req, res) =>{
 
   const news = await findByIdService(id);
 
-  if(String(news.user._id) != String(req.userId)){
+  if(String(news.user._id) !== req.userId){
     return res.status(400).send({
       message:"You didn't update this post",
     })
@@ -230,16 +232,38 @@ export const update = async (req, res) =>{
 
 export const erase = async (req, res) => {
   try{
-    const { id }=req.params;
+    const { id }= req.params;
 
     const news = await findByIdService(id);
-    if (String(news.user._id)!== String(req.userId)){
+
+    if (String(news.user._id)!== req.userId){
       return res.status(400).send({message: "You didn't delete this post"})
     };
     
     await eraseService(id);
+
     return res.send({ message: "Post deleted successfully"});
   }catch (err) {
     res.status(500).send({message: err.message});
   }
+}
+
+export const likeNews = async (req, res) => {
+  try{
+    const { id } = req.params;
+    const userId = req.userId;
+
+    const newsLiked = await likeNewsServices(id, userId);
+
+    if(!newsLiked){
+      await deleteLikeNewsServices(id, userId);
+      return res.status(200).send({message: "Like successfully removed"});
+    }
+    
+    res.send({message: "Like done succefully"});
+
+  }catch (err) {
+    res.status(500).send({message: err.message});
+  }
+   
 }
