@@ -12,6 +12,11 @@
     {
       "url": "http://localhost:3000",
       "description": "Local server"
+    },
+    {
+      
+      "url": "https://api-breaking-news-8vcv.onrender.com",
+      "description": "render server"
     }
   ],
   "paths": {
